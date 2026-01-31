@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+
+import urllib.parse
+import sys
+
+if len(sys.argv) < 2:
+    print(f"[*] Usage: python3 {sys.argv[0]} <url-encoded-data>")
+    sys.exit()
+
+enc = sys.argv[1]
+
+def decode(e):
+    dec =  urllib.parse.unquote(e)
+    print(dec)
+
+decode(enc)
+
