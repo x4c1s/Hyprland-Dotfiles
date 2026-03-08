@@ -1,13 +1,14 @@
-# This is the configuration file for Ghostty.
+#This is the configuration file for Ghostty.
 #
 # This template file has been automatically created at the following
 # path since Ghostty couldn't find any existing config files on your system:
 #
 #   /home/subh/.config/ghostty/config
-theme = catppuccin-mocha.conf
+theme = ~/.config/ghostty/themes/void.conf
+
 font-family = "Iosevka Nerd Font Propo"
 #font-family = "JetBrainsMono Nerd Font"
-font-size = 14
+font-size = 13
 cursor-style = block
 shell-integration-features = no-cursor
 # The template does not set any default options, since Ghostty ships

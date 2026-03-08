@@ -8,15 +8,15 @@ import QtQuick.Layouts
 ShellRoot {
     id: root
 
-    // Theme colors
-    property color colBg: "#1a1b26"
-    property color colFg: "#a9b1d6"
-    property color colMuted: "#444b6a"
-    property color colCyan: "#0db9d7"
-    property color colPurple: "#ad8ee6"
-    property color colRed: "#f7768e"
-    property color colYellow: "#e0af68"
-    property color colBlue: "#7aa2f7"
+    // --- BLACKOUT THEME COLORS ---
+    property color colBg: "#000000"           // True Black to match Ghostty
+    property color colFg: "#ffffff"           // Pure White to match Oh-My-Posh
+    property color colMuted: "#313244"        // Dark Grey (Surface1)
+    property color colCyan: "#89dceb"         // Catppuccin Sky
+    property color colPurple: "#cba6f7"       // Catppuccin Mauve
+    property color colRed: "#f38ba8"          // Catppuccin Red
+    property color colYellow: "#f9e2af"       // Catppuccin Yellow
+    property color colBlue: "#89b4fa"         // Catppuccin Blue
 
     // Font
     property string fontFamily: "Iosevka Nerd Font Propo"
@@ -33,25 +33,22 @@ ShellRoot {
     property string currentLayout: "Tile"
     property string cpuTemp: "0"
     property int cpuTempInt: parseInt(cpuTemp, 10)
+    
     property color tempColor: {
-        if (cpuTempInt < 50 ) return "#8fbcb3"
-        else if (cpuTempInt < 70) return "#e5c07b"
-        else return "#e06c75"
+        if (cpuTempInt < 50 ) return "#a6e3a1" // Green
+        else if (cpuTempInt < 70) return "#f9e2af" // Yellow
+        else return "#f38ba8" // Red
     }
+    
     property color powerProfileColor: {
-    switch (powerProfile) {
-    case "power-saver":
-        return "#98c379" // green
-    case "balanced":
-        return "#61afef" // blue
-    case "performance":
-        return "#e06c75" // red
-    default:
-        return "#abb2bf" // neutral / unknown
+        switch (powerProfile) {
+            case "power-saver": return "#a6e3a1"
+            case "balanced": return "#89b4fa"
+            case "performance": return "#f38ba8"
+            default: return "#bac2de"
         }
     }
     property string weatherTemp: "0"
-    // CPU tracking
     property var lastCpuIdle: 0
     property var lastCpuTotal: 0
 
@@ -60,15 +57,13 @@ ShellRoot {
         id: kernelProc
         command: ["uname", "-r"]
         stdout: SplitParser {
-            onRead: data => {
-                if (data) kernelVersion = data.trim()
-            }
+            onRead: data => { if (data) kernelVersion = data.trim() }
         }
         Component.onCompleted: running = true
     }
 
     // Power Profile
-     Process {
+    Process {
         id: powerProfileProc
         command: ["sh", "-c", "powerprofilesctl get"]
         stdout: SplitParser {
@@ -77,7 +72,6 @@ ShellRoot {
                 if (v != powerProfile) powerProfile = v
             }
         }
-
         Component.onCompleted: running = true
     }
 
@@ -96,16 +90,12 @@ ShellRoot {
                 var iowait = parseInt(parts[5]) || 0
                 var irq = parseInt(parts[6]) || 0
                 var softirq = parseInt(parts[7]) || 0
-
                 var total = user + nice + system + idle + iowait + irq + softirq
                 var idleTime = idle + iowait
-
                 if (lastCpuTotal > 0) {
                     var totalDiff = total - lastCpuTotal
                     var idleDiff = idleTime - lastCpuIdle
-                    if (totalDiff > 0) {
-                        cpuUsage = Math.round(100 * (totalDiff - idleDiff) / totalDiff)
-                    }
+                    if (totalDiff > 0) cpuUsage = Math.round(100 * (totalDiff - idleDiff) / totalDiff)
                 }
                 lastCpuTotal = total
                 lastCpuIdle = idleTime
@@ -131,22 +121,18 @@ ShellRoot {
     }
 
     // Weather
-
     Process {
-    id: weatherProc
-    command: ["sh", "-c", "curl -s 'https://wttr.in/prayagraj?format=j1' | jq -r '.current_condition[].FeelsLikeC'"]
-
-    stdout: SplitParser {
-        onRead: data => {
-            if (!data) return
-            var temp = parseInt(data.trim()) || 0
-            weatherTemp = temp + "°C"
+        id: weatherProc
+        command: ["sh", "-c", "curl -s 'https://wttr.in/prayagraj?format=j1' | jq -r '.current_condition[].FeelsLikeC'"]
+        stdout: SplitParser {
+            onRead: data => {
+                if (!data) return
+                var temp = parseInt(data.trim()) || 0
+                weatherTemp = temp + "°C"
+            }
         }
+        Component.onCompleted: running = true
     }
-
-    Component.onCompleted: running = true
-    }
-
 
     // Disk usage
     Process {
@@ -163,7 +149,7 @@ ShellRoot {
         Component.onCompleted: running = true
     }
 
-    // Volume level (wpctl for PipeWire)
+    // Volume level
     Process {
         id: volProc
         command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"]
@@ -171,9 +157,7 @@ ShellRoot {
             onRead: data => {
                 if (!data) return
                 var match = data.match(/Volume:\s*([\d.]+)/)
-                if (match) {
-                    volumeLevel = Math.round(parseFloat(match[1]) * 100)
-                }
+                if (match) volumeLevel = Math.round(parseFloat(match[1]) * 100)
             }
         }
         Component.onCompleted: running = true
@@ -184,122 +168,71 @@ ShellRoot {
         id: windowProc
         command: ["sh", "-c", "hyprctl activewindow -j | jq -r '.title // empty'"]
         stdout: SplitParser {
-            onRead: data => {
-                if (data && data.trim()) {
-                    activeWindow = data.trim()
-                }
-            }
+            onRead: data => { if (data && data.trim()) activeWindow = data.trim() }
         }
         Component.onCompleted: running = true
     }
 
-    // Current layout (Hyprland: dwindle/master/floating)
+    // Current layout
     Process {
         id: layoutProc
         command: ["sh", "-c", "hyprctl activewindow -j | jq -r 'if .floating then \"Floating\" elif .fullscreen == 1 then \"Fullscreen\" else \"Tiled\" end'"]
         stdout: SplitParser {
-            onRead: data => {
-                if (data && data.trim()) {
-                    currentLayout = data.trim()
-                }
-            }
+            onRead: data => { if (data && data.trim()) currentLayout = data.trim() }
         }
         Component.onCompleted: running = true
     }
+
+    // CPU Temp
     Process {
       id: cpuTempProc
       command: ["sh", "-c", "sensors | awk '/Tctl:/ {print $2}'"]
       stdout: SplitParser {
-        onRead: data => {
-          if (data && data.length > 0) {
-            cpuTemp = data.trim()
-          }
-        }
+        onRead: data => { if (data && data.length > 0) cpuTemp = data.trim() }
       }
     }
 
-
- 
-    // Slow timer for system stats
+    // Timers
     Timer {
-        interval: 2000
-        running: true
-        repeat: true
+        interval: 2000; running: true; repeat: true
         onTriggered: {
-            cpuProc.running = true
-            memProc.running = true
-            diskProc.running = true
-            volProc.running = true
-            cpuTempProc.running = true
-            powerProfileProc.running = true
+            cpuProc.running = true; memProc.running = true; diskProc.running = true
+            volProc.running = true; cpuTempProc.running = true; powerProfileProc.running = true
         }
     }
 
-    Timer {
-    interval: 900000   // 15 minutes
-    running: true
-    repeat: true
-    onTriggered: weatherProc.running = true
-    }
+    Timer { interval: 900000; running: true; repeat: true; onTriggered: weatherProc.running = true }
 
-    // Event-based updates for window/layout (instant)
     Connections {
         target: Hyprland
-        function onRawEvent(event) {
-            windowProc.running = true
-            layoutProc.running = true
-        }
+        function onRawEvent(event) { windowProc.running = true; layoutProc.running = true }
     }
 
-    // Backup timer for window/layout (catches edge cases)
     Timer {
-        interval: 200
-        running: true
-        repeat: true
-        onTriggered: {
-            windowProc.running = true
-            layoutProc.running = true
-        }
+        interval: 200; running: true; repeat: true
+        onTriggered: { windowProc.running = true; layoutProc.running = true }
     }
 
     Variants {
         model: Quickshell.screens
-
         PanelWindow {
             property var modelData
             screen: modelData
-
-            anchors {
-                top: true
-                left: true
-                right: true
-            }
-
+            anchors { top: true; left: true; right: true }
             implicitHeight: 30
             color: root.colBg
-
-            margins {
-                top: 0
-                bottom: 0
-                left: 0
-                right: 0
-            }
 
             Rectangle {
                 anchors.fill: parent
                 color: root.colBg
 
                 RowLayout {
-                    anchors.fill: parent
-                    spacing: 0
-
+                    anchors.fill: parent; spacing: 0
                     Item { width: 8 }
 
+                    // Arch Icon
                     Rectangle {
-                        Layout.preferredWidth: 24
-                        Layout.preferredHeight: 24
-                        color: "transparent"
-
+                        Layout.preferredWidth: 24; Layout.preferredHeight: 24; color: "transparent"
                         Image {
                             anchors.fill: parent
                             source: "file:///home/subh/.config/quickshell/icons/arch.png"
@@ -309,35 +242,26 @@ ShellRoot {
 
                     Item { width: 8 }
 
+                    // Workspaces
                     Repeater {
                         model: 9
-
                         Rectangle {
-                            Layout.preferredWidth: 20
-                            Layout.preferredHeight: parent.height
-                            color: "transparent"
-
+                            Layout.preferredWidth: 20; Layout.preferredHeight: parent.height; color: "transparent"
                             property var workspace: Hyprland.workspaces.values.find(ws => ws.id === index + 1) ?? null
                             property bool isActive: Hyprland.focusedWorkspace?.id === (index + 1)
                             property bool hasWindows: workspace !== null
 
                             Text {
                                 text: index + 1
-                                color: parent.isActive ? root.colCyan : (parent.hasWindows ? root.colCyan : root.colMuted)
-                                font.pixelSize: root.fontSize
-                                font.family: root.fontFamily
-                                font.bold: true 
+                                color: parent.isActive ? root.colCyan : (parent.hasWindows ? root.colFg : root.colMuted)
+                                font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true
                                 anchors.centerIn: parent
                             }
-
                             Rectangle {
-                                width: 20
-                                height: 3
-                                color: parent.isActive ? root.colPurple : root.colBg
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                anchors.bottom: parent.bottom
+                                width: 20; height: 3
+                                color: parent.isActive ? root.colPurple : "transparent"
+                                anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom
                             }
-
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: Hyprland.dispatch("workspace " + (index + 1))
@@ -345,200 +269,54 @@ ShellRoot {
                         }
                     }
 
-                    Rectangle {
-                        Layout.preferredWidth: 1
-                        Layout.preferredHeight: 16
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.leftMargin: 8
-                        Layout.rightMargin: 8
-                        color: root.colMuted
-                    }
+                    // Separator
+                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.leftMargin: 8; Layout.rightMargin: 8; color: root.colMuted }
 
+                    // Layout
+                    Text { text: currentLayout; color: root.colFg; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true }
+
+                    // Separator
+                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.leftMargin: 8; Layout.rightMargin: 8; color: root.colMuted }
+
+                    // Window Title
                     Text {
-                        text: currentLayout
-                        color: root.colFg
-                        font.pixelSize: root.fontSize
-                        font.family: root.fontFamily
-                        font.bold: true 
-                        Layout.leftMargin: 5
-                        Layout.rightMargin: 5
+                        text: activeWindow; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true
+                        Layout.fillWidth: true; Layout.leftMargin: 8; elide: Text.ElideRight; maximumLineCount: 1
                     }
 
-                    Rectangle {
-                        Layout.preferredWidth: 1
-                        Layout.preferredHeight: 16
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.leftMargin: 2
-                        Layout.rightMargin: 8
-                        color: root.colMuted
-                    }
+                    // System Stats (Right Side)
+                    Text { text: "󰣇 " + kernelVersion; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
+                    
+                    Text { text: "󰠠 " + powerProfile; color: powerProfileColor; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Text {
-                        text: activeWindow
-                        color: root.colPurple
-                        font.pixelSize: root.fontSize
-                        font.family: root.fontFamily
-                        font.bold: true
-                        Layout.fillWidth: true
-                        Layout.leftMargin: 8
-                        elide: Text.ElideRight
-                        maximumLineCount: 1
-                    }
+                    Text { text: "󰖐 " + weatherTemp; color: root.colYellow; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Text {
-                        text: "󰣇 " + kernelVersion  
-                        color: root.colCyan
-                        font.pixelSize: root.fontSize
-                        font.family: root.fontFamily
-                        font.bold: true 
-                        Layout.rightMargin: 8
-                    }
-                    Rectangle {
-                        Layout.preferredWidth: 1
-                        Layout.preferredHeight: 16
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.leftMargin: 0
-                        Layout.rightMargin: 8
-                        color: root.colMuted
-                      }
-                    Text {
-                        text: "󰠠 " + powerProfile  
-                        color: powerProfileColor
-                        font.pixelSize: root.fontSize
-                        font.family: root.fontFamily
-                        font.bold: true 
-                        Layout.rightMargin: 8
-                    }
-                    Rectangle {
-                        Layout.preferredWidth: 1
-                        Layout.preferredHeight: 16
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.leftMargin: 0
-                        Layout.rightMargin: 8
-                        color: root.colMuted
-                      }
-                    Text {
-                        text: "󰖐 " + weatherTemp  
-                        color: root.colYellow
-                        font.pixelSize: root.fontSize
-                        font.family: root.fontFamily
-                        font.bold: true 
-                        Layout.rightMargin: 8
-                    }
+                    Text { text: " " + cpuTemp; color: tempColor; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Rectangle {
-                        Layout.preferredWidth: 1
-                        Layout.preferredHeight: 16
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.leftMargin: 0
-                        Layout.rightMargin: 8
-                        color: root.colMuted
-                      }
-                    Text {
-                        text: " " + cpuTemp 
-                        color: tempColor
-                        font.pixelSize: root.fontSize
-                        font.family: root.fontFamily
-                        font.bold: true 
-                        Layout.rightMargin: 8
-                    }
+                    Text { text: " " + cpuUsage + "%"; color: root.colYellow; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Rectangle {
-                        Layout.preferredWidth: 1
-                        Layout.preferredHeight: 16
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.leftMargin: 0
-                        Layout.rightMargin: 8
-                        color: root.colMuted
-                      }
+                    Text { text: "󰘚 " + memUsage + "%"; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
+                    Text { text: " " + diskUsage + "%"; color: root.colBlue; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
+                    Text { text: " " + volumeLevel + "%"; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Text {
-                        text: " " + cpuUsage + "%"
-                        color: root.colYellow
-                        font.pixelSize: root.fontSize
-                        font.family: root.fontFamily
-                        font.bold: true 
-                        Layout.rightMargin: 8
-                    }
-
-                    Rectangle {
-                        Layout.preferredWidth: 1
-                        Layout.preferredHeight: 16
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.leftMargin: 0
-                        Layout.rightMargin: 8
-                        color: root.colMuted
-                    }
-
-                    Text {
-                        text: "󰘚 " + memUsage + "%"
-                        color: root.colCyan
-                        font.pixelSize: root.fontSize
-                        font.family: root.fontFamily
-                        font.bold: true 
-                        Layout.rightMargin: 8
-                    }
-
-                    Rectangle {
-                        Layout.preferredWidth: 1
-                        Layout.preferredHeight: 16
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.leftMargin: 0
-                        Layout.rightMargin: 8
-                        color: root.colMuted
-                    }
-
-                    Text {
-                        text: " " + diskUsage + "%"
-                        color: root.colBlue
-                        font.pixelSize: root.fontSize
-                        font.family: root.fontFamily
-                        font.bold: true 
-                        Layout.rightMargin: 8
-                    }
-
-                    Rectangle {
-                        Layout.preferredWidth: 1
-                        Layout.preferredHeight: 16
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.leftMargin: 0
-                        Layout.rightMargin: 8
-                        color: root.colMuted
-                    }
-
-                    Text {
-                        text: " " + volumeLevel + "%"
-                        color: root.colPurple
-                        font.pixelSize: root.fontSize
-                        font.family: root.fontFamily
-                        font.bold: true
-                        Layout.rightMargin: 8
-                    }
-
-                    Rectangle {
-                        Layout.preferredWidth: 1
-                        Layout.preferredHeight: 16
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.leftMargin: 0
-                        Layout.rightMargin: 8
-                        color: root.colMuted
-                    }
-
+                    // Clock
                     Text {
                         id: clockText
                         text: Qt.formatDateTime(new Date(), "ddd, MMM dd - HH:mm")
-                        color: root.colCyan
-                        font.pixelSize: root.fontSize
-                        font.family: root.fontFamily
-                        font.bold: true 
-                        Layout.rightMargin: 8
-
+                        color: root.colFg // White clock
+                        font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8
                         Timer {
-                            interval: 1000
-                            running: true
-                            repeat: true
+                            interval: 1000; running: true; repeat: true
                             onTriggered: clockText.text = Qt.formatDateTime(new Date(), "ddd, MMM dd - HH:mm:ss")
                         }
                     }
@@ -549,4 +327,3 @@ ShellRoot {
         }
     }
 }
-

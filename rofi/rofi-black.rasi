@@ -1,0 +1,124 @@
+/**
+ * Blackout Catppuccin Theme
+ * Modified to match #000000 Ghostty and White prompt setup
+ */
+
+* {
+    base: #000000;         /* True Black */
+    surface0: #181825;     /* Darker Grey */
+    overlay0: #313244;     /* Selection Grey */
+    text: #ffffff;         /* Pure White */
+
+    mauve: #cba6f7;
+    red: #f38ba8;
+    peach: #fab387;
+    green: #a6e3a1;
+    lavender: #b4befe;
+
+    background-color: @base;
+}
+
+window {
+    height: 600;
+    width: 600;
+
+    border: 2;
+    border-radius: 12;
+    border-color: @mauve; /* Gives a subtle glow against the black */
+}
+
+mainbox {
+    spacing: 0;
+    children: [inputbar, message, listview];
+}
+
+inputbar {
+    text-color: @text;
+    padding: 20;
+    background-color: @base;
+    children: [prompt, entry];
+}
+
+entry {
+    placeholder: "Search...";
+    placeholder-color: @overlay0;
+    text-color: @text;
+}
+
+message {
+    padding: 10;
+    background-color: @surface0;
+}
+
+listview {
+    padding: 8;
+    border-radius: 0 0 10 10;
+    border: 0;
+    background-color: @base;
+    dynamic: true;
+    lines: 10;
+}
+
+textbox {
+    text-color: @text;
+    background-color: inherit;
+}
+
+error-message {
+    border: 2;
+    border-color: @red;
+    padding: 20;
+}
+
+entry, prompt, case-indicator {
+    text-color: inherit;
+}
+
+prompt {
+    margin: 0 10 0 0;
+    text-color: @mauve; /* Keeps the prompt arrow/icon colorful */
+}
+
+element {
+    padding: 8;
+    vertical-align: 0.5;
+    border-radius: 8;
+    background-color: transparent;
+    text-color: @text;
+}
+
+element selected.normal {
+    background-color: @overlay0;
+    text-color: @text;
+}
+
+element alternate.normal {
+    background-color: inherit;
+}
+
+/* Logic for active/urgent states */
+element normal.active, element alternate.active {
+    text-color: @green;
+}
+
+element selected.active {
+    background-color: @green;
+    text-color: @base;
+}
+
+element normal.urgent, element alternate.urgent {
+    text-color: @red;
+}
+
+element selected.urgent {
+    background-color: @red;
+    text-color: @base;
+}
+
+element-text, element-icon {
+    size: 32;
+    margin: 0 12 0 0;
+    vertical-align: 0.5;
+    background-color: inherit;
+    text-color: inherit;
+}
