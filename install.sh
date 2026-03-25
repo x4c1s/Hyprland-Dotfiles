@@ -11,7 +11,7 @@ git clone https://aur.archlinux.org/yay.git && cd yay && sudo makepkg -si
 
 
 echo "[*] Installing yay packges"
-yay -S librewolf-bin xwaylandvideobridge croc ttyd stremio
+yay -S librewolf-bin xwaylandvideobridge croc ttyd stremio satty
 
 
 echo "[*] Adding the blackarch repo"
