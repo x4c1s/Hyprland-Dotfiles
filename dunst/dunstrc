@@ -4,7 +4,7 @@
     show_indicators = yes 
    # Which monitor should the notifications be displayed on.
     monitor = 0
-    font = Iosevka Nerdfont Propo 11
+    font = Iosevka Nerdfont Propo 12
 
     # Display notification on focused monitor.  Possible modes are:
     #   mouse: follow mouse pointer
