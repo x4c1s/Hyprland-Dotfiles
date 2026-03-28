@@ -31,6 +31,7 @@ ShellRoot {
     property int volumeLevel: 0
     property string activeWindow: "Window"
     property string currentLayout: "Tile"
+    property string layoutCurrent: ""
     property string cpuTemp: "0"
     property int cpuTempInt: parseInt(cpuTemp, 10)
     
@@ -40,14 +41,6 @@ ShellRoot {
         else return "#f38ba8" // Red
     }
     
-    property color powerProfileColor: {
-        switch (powerProfile) {
-            case "power-saver": return "#a6e3a1"
-            case "balanced": return "#89b4fa"
-            case "performance": return "#f38ba8"
-            default: return "#bac2de"
-        }
-    }
     property string weatherTemp: "0"
     property var lastCpuIdle: 0
     property var lastCpuTotal: 0
@@ -62,19 +55,26 @@ ShellRoot {
         Component.onCompleted: running = true
     }
 
-    // Power Profile
+    // Get Current Layout Information
     Process {
-        id: powerProfileProc
-        command: ["sh", "-c", "powerprofilesctl get"]
+        id: layoutMonitor
+        command: [
+            "sh", "-c",
+            "socat -U - UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock | while read -r line; do hyprctl getoption general:layout | awk '/str/ {print $2}'; done"
+        ]
         stdout: SplitParser {
             onRead: data => {
-                const v = data.trim()
-                if (v != powerProfile) powerProfile = v
+                if (data) {
+                    let val = data.trim()
+                    if (val) layoutCurrent = val
+                }
             }
         }
         Component.onCompleted: running = true
     }
 
+
+    
     // CPU usage
     Process {
         id: cpuProc
@@ -287,17 +287,18 @@ ShellRoot {
                     // System Stats (Right Side)
                     Text { text: "󰣇 " + kernelVersion; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
-                    
-                    Text { text: "󰠠 " + powerProfile; color: powerProfileColor; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
-                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
+
+                    Text { text: layoutCurrent; color: root.colRed; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+
+                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
                     Text { text: "󰖐 " + weatherTemp; color: root.colYellow; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
                     Text { text: " " + cpuTemp; color: tempColor; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Text { text: " " + cpuUsage + "%"; color: root.colYellow; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Text { text: " " + cpuUsage + "%"; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
                     Text { text: "󰘚 " + memUsage + "%"; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
@@ -306,8 +307,30 @@ ShellRoot {
                     Text { text: " " + diskUsage + "%"; color: root.colBlue; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
+                    // netspeed
+                    Text {
+                        id: netSpeed
+                        color: root.colRed
+                        font.pixelSize: 15
+                        font.family: root.fontFamily
+                        font.bold: true
+                        Layout.rightMargin: 8
+
+                            Process {
+                                id: netProc
+                                command: ["bash", "/opt/scripts/netspeed.sh", "wlp8s0"]
+                                running: true
+                                stdout: SplitParser {
+                                    onRead: data => netSpeed.text = data.trim()
+                                }
+                            }
+                        }
+
+                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
                     Text { text: " " + volumeLevel + "%"; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
+
+
 
                     // Clock
                     Text {
