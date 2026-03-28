@@ -4,15 +4,18 @@
 sudo pacman -Syu
 
 echo "[*] Installing core packages"
-sudo pacman -S NetworkManager dunst ly firewalld discord libnotify fastfetch ttd-iosevka-nerd quickshell fzf hyprlock hyprshot exa fd ripgrep bat pcmanfm  make cmake hyprland wayland pipewire ghostty swww rofi pavucontrol pulseaudio mpv feh maim dbus wl-clipboard tmux docker docker-compose rust go cargo uv python3 doas openvpn net-tools 7zip zip netcat socat wget curl spotify zoxide octopi cuda nvidia-settings nvidia-utils opencl-nvidia bore  grex protonvpn keepassxc flameshot power-profiles-daemon flatpak pass zathura zathura-pdf-mupdf
-flatpak install flathub com.stremio.Stremio
+sudo pacman -S NetworkManager dunst ly firewalld discord libnotify fastfetch ttd-iosevka-nerd quickshell fzf hyprlock hyprshot exa fd ripgrep bat pcmanfm  make cmake hyprland wayland pipewire ghostty swww rofi pavucontrol pulseaudio mpv feh maim dbus wl-clipboard tmux docker docker-compose rust go cargo uv python3 doas openvpn net-tools 7zip zip netcat socat wget curl spotify zoxide octopi cuda nvidia-settings nvidia-utils opencl-nvidia bore  grex protonvpn keepassxc flameshot power-profiles-daemon pass zathura zathura-pdf-mupdf
 
 echo "[*] Building yay"
 git clone https://aur.archlinux.org/yay.git && cd yay && sudo makepkg -si
 
+echo "[*] Building chaotic aur"
+wget -q -O chaotic-AUR-installer.bash https://raw.githubusercontent.com/SharafatKarim/chaotic-AUR-installer/main/install.bash && sudo bash chaotic-AUR-installer.bash && rm chaotic-AUR-installer.bash
+
+sudo pacman -Sy chaotic-keyring
 
 echo "[*] Installing yay packges"
-yay -S librewolf-bin xwaylandvideobridge croc ttyd stremio satty
+yay -S zen-browser-bin xwaylandvideobridge croc ttyd stremio satty
 
 
 echo "[*] Adding the blackarch repo"
@@ -31,9 +34,9 @@ echo "[*] Setting up rofi"
 mkdir -p ~/.config/rofi
 cp rofi/* ~/.config/rofi
 
-echo "[*] Setting up swaync"
-mkdir -p ~/.config/swaync
-cp swaync/style.css ~/.config/swaync
+echo "[*] Setting up dunst"
+mkdir -p ~/.config/dunst
+cp dunst/*  ~/.config/dunst/
 
 echo "[*] Setting up tmux"
 mkdir -p ~/.config/tmux
