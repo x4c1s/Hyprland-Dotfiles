@@ -34,6 +34,7 @@ ShellRoot {
     property string layoutCurrent: ""
     property string cpuTemp: "0"
     property int cpuTempInt: parseInt(cpuTemp, 10)
+    property string upTime: "0"
     
     property color tempColor: {
         if (cpuTempInt < 50 ) return "#a6e3a1" // Green
@@ -55,6 +56,16 @@ ShellRoot {
         Component.onCompleted: running = true
     }
 
+    // System UpTime
+    Process {
+        id: upTimeProc
+        command: ["sh", "-c", "uptime|awk '{gsub(\",\",\"\");print $3}'"]
+       // command: ["sh", "-c", "uptime"]
+        stdout: SplitParser {
+            onRead: data => { if (data) upTime = data.trim() }
+        }
+        Component.onCompleted: running = true
+    }
     // Get Current Layout Information
     Process {
         id: layoutMonitor
@@ -193,6 +204,14 @@ ShellRoot {
     }
 
     // Timers
+    // UpTime Timer
+    Timer {
+        interval: 60000; running: true; repeat: true
+        onTriggered: {
+            upTimeProc.running = true
+        }
+    }
+    // SysEssentials Timer
     Timer {
         interval: 2000; running: true; repeat: true
         onTriggered: {
@@ -200,7 +219,7 @@ ShellRoot {
             volProc.running = true; cpuTempProc.running = true; powerProfileProc.running = true
         }
     }
-
+    // Weather Timer
     Timer { interval: 900000; running: true; repeat: true; onTriggered: weatherProc.running = true }
 
     Connections {
@@ -276,6 +295,10 @@ ShellRoot {
                     Text { text: currentLayout; color: root.colFg; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true }
 
                     // Separator
+                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.leftMargin: 8; Layout.rightMargin: 8; color: root.colMuted }
+
+                    Text { text: "uptime: " + upTime; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true }
+
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.leftMargin: 8; Layout.rightMargin: 8; color: root.colMuted }
 
                     // Window Title
