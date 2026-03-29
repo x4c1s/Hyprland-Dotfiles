@@ -15,5 +15,5 @@ while true; do
     RX=$(( (NEW_RX - OLD_RX) / 1024 ))
     TX=$(( (NEW_TX - OLD_TX) / 1024 ))
 
-    echo "↓ ${RX} KB/s  ↑ ${TX} KB/s"
+    echo "⬇️ ${RX} KB/s  ⬆️ ${TX} KB/s"
 done

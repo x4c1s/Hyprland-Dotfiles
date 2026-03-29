@@ -4,7 +4,7 @@
 sudo pacman -Syu
 
 echo "[*] Installing core packages"
-sudo pacman -S NetworkManager dunst ly firewalld discord libnotify fastfetch ttd-iosevka-nerd quickshell fzf hyprlock hyprshot exa fd ripgrep bat pcmanfm  make cmake hyprland wayland pipewire ghostty swww rofi pavucontrol pulseaudio mpv feh maim dbus wl-clipboard tmux docker docker-compose rust go cargo uv python3 doas openvpn net-tools 7zip zip netcat socat wget curl spotify zoxide octopi cuda nvidia-settings nvidia-utils opencl-nvidia bore  grex protonvpn keepassxc flameshot power-profiles-daemon pass zathura zathura-pdf-mupdf
+sudo pacman -S NetworkManager dunst ly firewalld discord libnotify fastfetch ttf-iosevka-nerd quickshell fzf hyprlock hyprshot exa fd ripgrep bat pcmanfm  make cmake hyprland wayland pipewire ghostty swww rofi pavucontrol pulseaudio mpv feh maim dbus wl-clipboard tmux docker docker-compose rust go cargo uv python3 doas openvpn net-tools 7zip zip netcat socat wget curl spotify zoxide octopi cuda nvidia-settings nvidia-utils opencl-nvidia bore  grex protonvpn keepassxc pass zathura zathura-pdf-mupdf
 
 echo "[*] Building yay"
 git clone https://aur.archlinux.org/yay.git && cd yay && sudo makepkg -si

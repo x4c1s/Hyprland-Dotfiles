@@ -26,12 +26,11 @@ ShellRoot {
     property string kernelVersion: "Arch"
     property string powerProfile: ""
     property int cpuUsage: 0
-    property int memUsage: 0
-    property int diskUsage: 0
+    property string memUsage: ""
+    property string diskUsage: ""
     property int volumeLevel: 0
     property string activeWindow: "Window"
     property string currentLayout: "Tile"
-    property string layoutCurrent: ""
     property string cpuTemp: "0"
     property int cpuTempInt: parseInt(cpuTemp, 10)
     property string upTime: "0"
@@ -43,8 +42,44 @@ ShellRoot {
     }
     
     property string weatherTemp: "0"
+    property string weatherIcon: ""
+    property string weatherDesc: ""
     property var lastCpuIdle: 0
     property var lastCpuTotal: 0
+
+        
+    function getWeatherIcon(desc) {
+        if (!desc) return "❓";
+        var hour = new Date().getHours();
+        var isDay = (hour >= 6 && hour < 18);
+        var d = desc.toLowerCase();
+        if (d.includes("sun") || d.includes("clear")) {
+            return isDay ? "☀️ " : "🌙 ";
+        }
+        if (d.includes("cloud") && d.includes("partly")) {
+            return isDay ? "⛅ " : "☁️ ";
+        }
+        if (d.includes("cloud") || d.includes("overcast")) {
+            return "☁️ ";
+        }
+        if (d.includes("rain") || d.includes("drizzle") || d.includes("showers")) {
+            return "🌧️ ";
+        }
+
+        if (d.includes("thunder") || d.includes("storm")) {
+            return "⛈️ ";
+        }
+
+        if (d.includes("snow") || d.includes("ice") || d.includes("sleet")) {
+            return "❄️ ";
+        }
+
+        if (d.includes("fog") || d.includes("mist") || d.includes("haze")) {
+            return "🌫️ ";
+        }
+
+        return "🌡️";
+    }
 
     // Kernel version
     Process {
@@ -63,23 +98,6 @@ ShellRoot {
        // command: ["sh", "-c", "uptime"]
         stdout: SplitParser {
             onRead: data => { if (data) upTime = data.trim() }
-        }
-        Component.onCompleted: running = true
-    }
-    // Get Current Layout Information
-    Process {
-        id: layoutMonitor
-        command: [
-            "sh", "-c",
-            "socat -U - UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock | while read -r line; do hyprctl getoption general:layout | awk '/str/ {print $2}'; done"
-        ]
-        stdout: SplitParser {
-            onRead: data => {
-                if (data) {
-                    let val = data.trim()
-                    if (val) layoutCurrent = val
-                }
-            }
         }
         Component.onCompleted: running = true
     }
@@ -118,14 +136,13 @@ ShellRoot {
     // Memory usage
     Process {
         id: memProc
-        command: ["sh", "-c", "free | grep Mem"]
+        command: ["sh", "-c", "free -h | grep Mem"]
         stdout: SplitParser {
             onRead: data => {
                 if (!data) return
                 var parts = data.trim().split(/\s+/)
-                var total = parseInt(parts[1]) || 1
-                var used = parseInt(parts[2]) || 0
-                memUsage = Math.round(100 * used / total)
+                var used = parts[2] || "0"
+                memUsage = used
             }
         }
         Component.onCompleted: running = true
@@ -134,12 +151,17 @@ ShellRoot {
     // Weather
     Process {
         id: weatherProc
-        command: ["sh", "-c", "curl -s 'https://wttr.in/prayagraj?format=j1' | jq -r '.current_condition[].FeelsLikeC'"]
+        command: ["sh", "-c", "curl -s 'https://wttr.in/prayagraj?format=j1' | jq -r '.current_condition[] | [.weatherDesc[0].value, .FeelsLikeC + \"°C\"] | join(\"|\")'"]
         stdout: SplitParser {
             onRead: data => {
-                if (!data) return
-                var temp = parseInt(data.trim()) || 0
-                weatherTemp = temp + "°C"
+                if (!data || data.trim() === "") return
+                var parts = data.trim().split('|')
+                if (parts.length >= 2) {
+                    weatherDesc = parts[0]
+                    weatherTemp = parts[1]
+
+                    weatherIcon = getWeatherIcon(weatherDesc.toLowerCase())
+                }
             }
         }
         Component.onCompleted: running = true
@@ -148,13 +170,13 @@ ShellRoot {
     // Disk usage
     Process {
         id: diskProc
-        command: ["sh", "-c", "df / | tail -1"]
+        command: ["sh", "-c", "df -h / | tail -1"]
         stdout: SplitParser {
             onRead: data => {
                 if (!data) return
                 var parts = data.trim().split(/\s+/)
-                var percentStr = parts[4] || "0%"
-                diskUsage = parseInt(percentStr.replace('%', '')) || 0
+                var StrInGB = parts[2] || "0G"
+                diskUsage = StrInGB
             }
         }
         Component.onCompleted: running = true
@@ -220,7 +242,7 @@ ShellRoot {
         }
     }
     // Weather Timer
-    Timer { interval: 900000; running: true; repeat: true; onTriggered: weatherProc.running = true }
+    Timer { interval: 1800000; running: true; repeat: true; onTriggered: weatherProc.running = true }
 
     Connections {
         target: Hyprland
@@ -311,23 +333,19 @@ ShellRoot {
                     Text { text: "󰣇 " + kernelVersion; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-
-                    Text { text: layoutCurrent; color: root.colRed; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
-
-                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
-                    Text { text: "󰖐 " + weatherTemp; color: root.colYellow; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Text { text: weatherIcon + weatherTemp; color: root.colYellow; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Text { text: " " + cpuTemp; color: tempColor; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Text { text: "🌡️" + cpuTemp; color: tempColor; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Text { text: " " + cpuUsage + "%"; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Text { text: "🖥️ " + cpuUsage + "%"; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Text { text: "󰘚 " + memUsage + "%"; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Text { text: "🧠 " + memUsage; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Text { text: " " + diskUsage + "%"; color: root.colBlue; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Text { text: "💾 " + diskUsage; color: root.colBlue; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
                     // netspeed
@@ -350,7 +368,7 @@ ShellRoot {
                         }
 
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
-                    Text { text: " " + volumeLevel + "%"; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Text { text: "🔊 " + volumeLevel + "%"; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
 
