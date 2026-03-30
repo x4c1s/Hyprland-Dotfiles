@@ -41,46 +41,48 @@ ShellRoot {
         else return "#f38ba8" // Red
     }
     
+    property int notificationCount: 0    
+
     property string weatherTemp: "0"
     property string weatherIcon: ""
     property string weatherDesc: ""
     property var lastCpuIdle: 0
     property var lastCpuTotal: 0
 
-        
+
+
     function getWeatherIcon(desc) {
         if (!desc) return "❓";
         var hour = new Date().getHours();
         var isDay = (hour >= 6 && hour < 18);
         var d = desc.toLowerCase();
         if (d.includes("sun") || d.includes("clear")) {
-            return isDay ? "☀️ " : "🌙 ";
+            return isDay ? " " : " ";
         }
         if (d.includes("cloud") && d.includes("partly")) {
-            return isDay ? "⛅ " : "☁️ ";
+            return isDay ? " " : " ";
         }
         if (d.includes("cloud") || d.includes("overcast")) {
-            return "☁️ ";
+            return " ";
         }
         if (d.includes("rain") || d.includes("drizzle") || d.includes("showers")) {
-            return "🌧️ ";
+            return " ";
         }
 
         if (d.includes("thunder") || d.includes("storm")) {
-            return "⛈️ ";
+            return " ";
         }
 
         if (d.includes("snow") || d.includes("ice") || d.includes("sleet")) {
-            return "❄️ ";
+            return " ";
         }
 
         if (d.includes("fog") || d.includes("mist") || d.includes("haze")) {
-            return "🌫️ ";
+            return "󰖑 ";
         }
 
-        return "🌡️";
+        return " ";
     }
-
     // Kernel version
     Process {
         id: kernelProc
@@ -131,6 +133,42 @@ ShellRoot {
             }
         }
         Component.onCompleted: running = true
+    }
+
+    // Notification monitor
+    Process {
+    id: notifListener
+    command: ["sh", "-c", "dbus-monitor \"interface='org.freedesktop.Notifications',member='Notify'\" \"interface='org.freedesktop.Notifications',member='NotificationClosed'\""]
+    running: true
+    stdout: SplitParser {
+        onRead: data => {
+            countPoller.running = true
+        }
+    }
+}
+    // Notification Updater
+    Process {
+    id: countPoller
+    command: ["sh", "-c", "dunstctl count | awk -F : '/History/ {print $2}'"]
+    stdout: SplitParser {
+        onRead: data => {
+            if (data) notificationCount = parseInt(data.trim())
+        }
+    }
+}	
+	// show notification history
+	Process {
+    id: showHistoryProc
+    command: ["sh", "-c", "count=$(dunstctl count history); for i in $(seq 1 $count); do dunstctl history-pop; done"]
+	}
+    
+	// clear notifications
+    Process {
+        id: clearAllProc
+        command: ["dunstctl", "history-clear"]
+        onExited: {
+            countPoller.running = true;
+        }
     }
 
     // Memory usage
@@ -223,9 +261,10 @@ ShellRoot {
       stdout: SplitParser {
         onRead: data => { if (data && data.length > 0) cpuTemp = data.trim() }
       }
-    }
+  }
 
     // Timers
+
     // UpTime Timer
     Timer {
         interval: 60000; running: true; repeat: true
@@ -315,11 +354,8 @@ ShellRoot {
 
                     // Layout
                     Text { text: currentLayout; color: root.colFg; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true }
-
-                    // Separator
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.leftMargin: 8; Layout.rightMargin: 8; color: root.colMuted }
-
-                    Text { text: "uptime: " + upTime; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true }
+                    Text { text: "󰦖 " + upTime; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true }
 
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.leftMargin: 8; Layout.rightMargin: 8; color: root.colMuted }
 
@@ -336,16 +372,16 @@ ShellRoot {
                     Text { text: weatherIcon + weatherTemp; color: root.colYellow; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Text { text: "🌡️" + cpuTemp; color: tempColor; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Text { text: " " + cpuTemp; color: tempColor; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Text { text: "🖥️ " + cpuUsage + "%"; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Text { text: " " + cpuUsage + "%"; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Text { text: "🧠 " + memUsage; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Text { text: " " + memUsage; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Text { text: "💾 " + diskUsage; color: root.colBlue; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Text { text: " " + diskUsage; color: root.colBlue; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
                     // netspeed
@@ -368,24 +404,56 @@ ShellRoot {
                         }
 
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
-                    Text { text: "🔊 " + volumeLevel + "%"; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Text { text: " " + volumeLevel + "%"; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
-
 
 
                     // Clock
                     Text {
                         id: clockText
                         text: Qt.formatDateTime(new Date(), "ddd, MMM dd - HH:mm")
-                        color: root.colFg // White clock
+                        color: root.colFg 
                         font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8
                         Timer {
                             interval: 1000; running: true; repeat: true
                             onTriggered: clockText.text = Qt.formatDateTime(new Date(), "ddd, MMM dd - HH:mm:ss")
                         }
                     }
+					RowLayout {
+					id: notifRow
+    				visible: root.notificationCount > 0
+    				spacing: 0
 
+    				Rectangle { 
+        				Layout.preferredWidth: 1; Layout.preferredHeight: 16
+        				Layout.leftMargin: 8; Layout.rightMargin: 8
+        				color: root.colMuted 
+    				}
+
+    				Text {
+        				text: "󰂚 " + root.notificationCount
+        				color: root.colYellow
+        				font.pixelSize: root.fontSize
+        				font.family: root.fontFamily
+        				font.bold: true
+        
+        			MouseArea {
+            			anchors.fill: parent
+            			cursorShape: Qt.PointingHandCursor
+            
+            			acceptedButtons: Qt.LeftButton | Qt.RightButton
+            			onClicked: (mouse) => {
+                			if (mouse.button === Qt.RightButton) {
+                    			clearAllProc.running = true;
+                			} else {
+                    			showHistoryProc.running = true;
+                				}
+            				}
+        				}
+    				}
+				}
                     Item { width: 8 }
+
                 }
             }
         }
