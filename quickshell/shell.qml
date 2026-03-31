@@ -17,7 +17,7 @@ ShellRoot {
     property color colRed: "#f38ba8"          // Catppuccin Red
     property color colYellow: "#f9e2af"       // Catppuccin Yellow
     property color colBlue: "#89b4fa"         // Catppuccin Blue
-
+    property color colGreen: "#A3BE8C" 
     // Font
     property string fontFamily: "Iosevka Nerd Font Propo"
     property int fontSize: 16
@@ -43,14 +43,14 @@ ShellRoot {
     
     property int notificationCount: 0    
 
-    property string weatherTemp: "0"
-    property string weatherIcon: ""
-    property string weatherDesc: ""
     property var lastCpuIdle: 0
     property var lastCpuTotal: 0
 
-
-
+    property string weatherIcon: " "
+    property string weatherTemp: "--°C"
+    property string weatherPrecip: ""
+    property string weatherWind: ""
+    
     function getWeatherIcon(desc) {
         if (!desc) return "❓";
         var hour = new Date().getHours();
@@ -189,22 +189,23 @@ ShellRoot {
     // Weather
     Process {
         id: weatherProc
-        command: ["sh", "-c", "curl -s 'https://wttr.in/prayagraj?format=j1' | jq -r '.current_condition[] | [.weatherDesc[0].value, .FeelsLikeC + \"°C\"] | join(\"|\")'"]
+    // Call your python script directly
+        command: ["python3", "/opt/scripts/weather.py"] 
+    
         stdout: SplitParser {
             onRead: data => {
                 if (!data || data.trim() === "") return
-                var parts = data.trim().split('|')
-                if (parts.length >= 2) {
-                    weatherDesc = parts[0]
+                var parts = data.trim().split(/\s+/)
+                if (parts.length >= 3) {
+                    weatherIcon = parts[0]
                     weatherTemp = parts[1]
-
-                    weatherIcon = getWeatherIcon(weatherDesc.toLowerCase())
+                    weatherPrecip = parts[2] + " " + parts[3] // Icon + %
                 }
             }
-        }
-        Component.onCompleted: running = true
+    
     }
-
+    Component.onCompleted: running = true
+}
     // Disk usage
     Process {
         id: diskProc
@@ -281,7 +282,7 @@ ShellRoot {
         }
     }
     // Weather Timer
-    Timer { interval: 1800000; running: true; repeat: true; onTriggered: weatherProc.running = true }
+    Timer { interval: 3600000; running: true; repeat: true; onTriggered: weatherProc.running = true }
 
     Connections {
         target: Hyprland
@@ -364,13 +365,42 @@ ShellRoot {
                         text: activeWindow; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true
                         Layout.fillWidth: true; Layout.leftMargin: 8; elide: Text.ElideRight; maximumLineCount: 1
                     }
+                    RowLayout {
+                        id: weatherRow
+                        spacing: 10
 
+                        Text {
+                            text: weatherIcon
+                            color: root.colYellow 
+                            font.pixelSize: 18
+                            font.family: root.fontFamily
+                            font.bold: true
+                            }
+
+                        Text {
+                            text: weatherTemp
+                            font.family: root.fontFamily
+                            font.pixelSize: root.fontSize
+                            color: root.colYellow
+                            font.bold: true
+                        }
+
+                        Text {
+                            text: weatherPrecip
+                            font.family: root.fontFamily
+                            font.pixelSize: root.fontSize
+                            color: root.colGreen
+                            font.bold: true
+                            Layout.rightMargin: 8
+                        }
+
+                    }
+
+                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
                     // System Stats (Right Side)
                     Text { text: "󰣇 " + kernelVersion; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Text { text: weatherIcon + weatherTemp; color: root.colYellow; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
-                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
                     Text { text: " " + cpuTemp; color: tempColor; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
@@ -419,6 +449,7 @@ ShellRoot {
                             onTriggered: clockText.text = Qt.formatDateTime(new Date(), "ddd, MMM dd - HH:mm:ss")
                         }
                     }
+
 					RowLayout {
 					id: notifRow
     				visible: root.notificationCount > 0
@@ -452,8 +483,8 @@ ShellRoot {
         				}
     				}
 				}
-                    Item { width: 8 }
 
+                Item { width: 8 }
                 }
             }
         }
