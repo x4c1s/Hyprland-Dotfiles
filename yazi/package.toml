@@ -1,0 +1,47 @@
+[[plugin.deps]]
+use = "KKV9/compress"
+rev = "46a6b9f"
+hash = "771af2becc575a3f43d0542de823969d"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:chmod"
+rev = "e84f4fe"
+hash = "f0c8c378184d5f8abd1b095a443d336d"
+
+[[plugin.deps]]
+use = "ZimCodes/lin-decompress"
+rev = "592fee3"
+hash = "1b1eb812c57d18a2047c1e8e1536274f"
+
+[[plugin.deps]]
+use = "XYenon/clipboard"
+rev = "3b96810"
+hash = "13d7eb15a079c735e34124b922322de5"
+
+[[plugin.deps]]
+use = "GianniBYoung/rsync"
+rev = "44f6979"
+hash = "9e85283824277bf66011a3977d266edb"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:full-border"
+rev = "e84f4fe"
+hash = "6fa6a05a81c98dd000fbca3cca6e9682"
+
+[[plugin.deps]]
+use = "Reledia/glow"
+rev = "bd3eaa5"
+hash = "92b5c58159a51c567f82b618cee2b78"
+
+[[plugin.deps]]
+use = "AminurAlam/yazi-plugins:preview-audio"
+rev = "1d28640"
+hash = "e8a166503389d5a2165762daedb54821"
+
+[[plugin.deps]]
+use = "walldmtd/fs-usage"
+rev = "4f4992b"
+hash = "61410fb3409c22990a52767c738c2722"
+
+[flavor]
+deps = []

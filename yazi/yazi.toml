@@ -1,0 +1,27 @@
+[mgr]
+ratio = [1,4,3]
+sort_by = "size"
+sort_dir_first = true
+linemode = "size_and_mtime"
+show_hidden = false
+show_symlink = true
+mouse_events = ["scroll", "click"]
+
+[preview]
+wrap = "yes"
+image_filter = "catmull-rom"
+
+[opener]
+edit = [
+    { run = "vim %s", block=true },
+]
+
+[plugin]
+prepend_previewers = [
+  { mime = 'audio/mpegurl', run = 'code' }, # ignore .m3u files
+  { mime = 'audio/*', run = 'preview-audio' },
+]
+prepend_preloaders = [
+  { mime = 'audio/mpegurl', run = 'code' }, # ignore .m3u files
+  { mime = 'audio/*', run = 'preview-audio' },
+]

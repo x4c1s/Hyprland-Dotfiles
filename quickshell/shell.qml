@@ -48,51 +48,19 @@ ShellRoot {
 
     property string weatherIcon: " "
     property string weatherTemp: "--°C"
-    property string weatherPrecip: ""
-    property string weatherWind: ""
+    property string weatherPrecip: "--%"
+    property string weatherWind: "--kph"
+    property string netConnection: ""
     
-    function getWeatherIcon(desc) {
-        if (!desc) return "❓";
-        var hour = new Date().getHours();
-        var isDay = (hour >= 6 && hour < 18);
-        var d = desc.toLowerCase();
-        if (d.includes("sun") || d.includes("clear")) {
-            return isDay ? " " : " ";
-        }
-        if (d.includes("cloud") && d.includes("partly")) {
-            return isDay ? " " : " ";
-        }
-        if (d.includes("cloud") || d.includes("overcast")) {
-            return " ";
-        }
-        if (d.includes("rain") || d.includes("drizzle") || d.includes("showers")) {
-            return " ";
-        }
 
-        if (d.includes("thunder") || d.includes("storm")) {
-            return " ";
-        }
-
-        if (d.includes("snow") || d.includes("ice") || d.includes("sleet")) {
-            return " ";
-        }
-
-        if (d.includes("fog") || d.includes("mist") || d.includes("haze")) {
-            return "󰖑 ";
-        }
-
-        return " ";
-    }
-    // Kernel version
     Process {
-        id: kernelProc
-        command: ["uname", "-r"]
+        id: connectionProc
+        command: ["sh", "-c", "sed 's/dormant/󰤯 /;s/down/󰤭 /;s/up/󰤨 /' /sys/class/net/wlp8s0/operstate"]
         stdout: SplitParser {
-            onRead: data => { if (data) kernelVersion = data.trim() }
+            onRead: data => { if (data) netConnection = data.trim() }
         }
         Component.onCompleted: running = true
     }
-
     // System UpTime
     Process {
         id: upTimeProc
@@ -196,10 +164,11 @@ ShellRoot {
             onRead: data => {
                 if (!data || data.trim() === "") return
                 var parts = data.trim().split(/\s+/)
-                if (parts.length >= 3) {
+                if (parts.length >= 4) {
                     weatherIcon = parts[0]
                     weatherTemp = parts[1]
-                    weatherPrecip = parts[2] + " " + parts[3] // Icon + %
+                    weatherPrecip = parts[2] + " " + parts[3]
+                    weatherWind =  parts[4] + " " + parts[5]
                 }
             }
     
@@ -266,6 +235,12 @@ ShellRoot {
 
     // Timers
 
+    Timer {
+        interval: 5000; running: true; repeat: true
+        onTriggered: {
+            connectionProc.running = true
+        }
+    }
     // UpTime Timer
     Timer {
         interval: 60000; running: true; repeat: true
@@ -282,7 +257,12 @@ ShellRoot {
         }
     }
     // Weather Timer
-    Timer { interval: 3600000; running: true; repeat: true; onTriggered: weatherProc.running = true }
+    Timer { 
+        interval: 3600000; running: true; repeat: true; onTriggered: { 
+            console.log("Weather fetched at: " + new Date().toString())
+            weatherProc.running = true 
+        }
+    }
 
     Connections {
         target: Hyprland
@@ -391,16 +371,20 @@ ShellRoot {
                             font.pixelSize: root.fontSize
                             color: root.colGreen
                             font.bold: true
+                        }
+
+                        Text {
+                            text: weatherWind
+                            font.family: root.fontFamily
+                            font.pixelSize: root.fontSize
+                            color: root.colBlue
+                            font.bold: true
                             Layout.rightMargin: 8
                         }
 
                     }
 
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
-                    // System Stats (Right Side)
-                    Text { text: "󰣇 " + kernelVersion; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
-                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
-
 
                     Text { text: " " + cpuTemp; color: tempColor; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
@@ -414,7 +398,18 @@ ShellRoot {
                     Text { text: " " + diskUsage; color: root.colBlue; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
+                    Text { text: netConnection; color: root.colBlue; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 4 }
                     // netspeed
+                    RowLayout {
+                        id: netSpeedRow
+                        visible: root.netConnection == "󰤨"
+                        spacing: 0
+                    
+                    Rectangle {
+        				Layout.preferredWidth: 1; Layout.preferredHeight: 16
+        				Layout.leftMargin: 8; Layout.rightMargin: 8
+        				color: root.colMuted 
+                    }
                     Text {
                         id: netSpeed
                         color: root.colRed
@@ -426,12 +421,13 @@ ShellRoot {
                             Process {
                                 id: netProc
                                 command: ["bash", "/opt/scripts/netspeed.sh", "wlp8s0"]
-                                running: true
+                                running: root.netConnection == "󰤨"
                                 stdout: SplitParser {
                                     onRead: data => netSpeed.text = data.trim()
                                 }
                             }
                         }
+                    }
 
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
                     Text { text: " " + volumeLevel + "%"; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
