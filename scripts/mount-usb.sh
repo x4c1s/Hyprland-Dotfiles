@@ -71,7 +71,7 @@ case "$chosen" in
 
         MAPPER="$usb$num"
 
-        ${TERMINAL:-st} -n floatpattern -g 60x1 -e sudo cryptsetup open "$chosen" "$MAPPER"
+        ${TERMINAL:-foot} -a floatpattern -w 60x3 sh -c "pass=\$(systemd-ask-password 'Enter Passphrase:'); echo \$pass | sudo cryptsetup open '$chosen' '$MAPPER'" 
 
         if ! test -b "/dev/mapper/$MAPPER"; then
             notify-send "❌ Decryption Failed" "Could not open $chosen"

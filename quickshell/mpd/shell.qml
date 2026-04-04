@@ -3,15 +3,15 @@ import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
 ShellRoot {
-    property color colBg:     "#000000"
-    property color colFg:     "#ffffff"
-    property color colMuted:  "#313244"
-    property color colCyan:   "#89dceb"
-    property color colPurple: "#cba6f7"
-    property color colRed:    "#f38ba8"
-    property color colYellow: "#f9e2af"
-    property color colBlue:   "#89b4fa"
-    property color colGreen:  "#A3BE8C"
+    property color colBg: "#1d2021"           // Gruvbox Background (Hard)
+    property color colFg: "#ebdbb2"           // Gruvbox Foreground
+    property color colMuted: "#928374"        // Gruvbox Gray (Muted)
+    property color colCyan: "#8ec07c"         // Gruvbox Aqua/Cyan
+    property color colPurple: "#d3869b"       // Gruvbox Purple
+    property color colRed: "#fb4934"          // Gruvbox Red (Bright)
+    property color colYellow: "#fabd2f"       // Gruvbox Yellow (Bright)
+    property color colBlue: "#83a598"         // Gruvbox Blue
+    property color colGreen: "#b8bb26"        // Gruvbox Green
     property string fontFamily: "Iosevka NerdFont Propo"
     property int fontSize: 16
     property string mpd_title:    ""
@@ -286,7 +286,7 @@ ShellRoot {
                         width: parent.width * mpd_progress
                         height: parent.height
                         radius: 2
-                        color: isPlaying ? colCyan : colYellow
+                        color: isPlaying ? colRed : colYellow
                         Behavior on width {
                             enabled: !isSeeking
                             NumberAnimation { duration: 950; easing.type: Easing.Linear }
@@ -506,7 +506,7 @@ ShellRoot {
                         id: progressFill
                         width: progressTrack.width * mpd_progress
                         height: parent.height; radius: 2
-                        color: isPlaying ? colCyan : colYellow
+                        color: isPlaying ? colRed : colYellow
                         Behavior on width {
                             enabled: !isSeeking
                             NumberAnimation { duration: 950; easing.type: Easing.Linear }

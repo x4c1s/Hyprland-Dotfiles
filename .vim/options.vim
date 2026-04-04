@@ -1,5 +1,7 @@
 set number
 set relativenumber
+set path+=**
+set wildmenu
 
 filetype plugin indent on
 set expandtab

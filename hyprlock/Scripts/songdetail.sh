@@ -1,5 +1,5 @@
 #!/bin/bash
 
-song_info=$(playerctl metadata --format '{{title}}      {{artist}}')
+song_info=$(mpc status --format "%title% - %artist%" | head -n1)
 
-echo "$song_info" 
+echo "🎵 $song_info" 

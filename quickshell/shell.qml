@@ -8,18 +8,18 @@ import QtQuick.Layouts
 ShellRoot {
     id: root
 
-    // --- BLACKOUT THEME COLORS ---
-    property color colBg: "#000000"           // True Black to match Ghostty
-    property color colFg: "#ffffff"           // Pure White to match Oh-My-Posh
-    property color colMuted: "#313244"        // Dark Grey (Surface1)
-    property color colCyan: "#89dceb"         // Catppuccin Sky
-    property color colPurple: "#cba6f7"       // Catppuccin Mauve
-    property color colRed: "#f38ba8"          // Catppuccin Red
-    property color colYellow: "#f9e2af"       // Catppuccin Yellow
-    property color colBlue: "#89b4fa"         // Catppuccin Blue
-    property color colGreen: "#A3BE8C" 
+    property color colBg: "#1d2021"           // Gruvbox Background (Hard)
+    property color colFg: "#ebdbb2"           // Gruvbox Foreground
+    property color colMuted: "#928374"        // Gruvbox Gray (Muted)
+    property color colCyan: "#8ec07c"         // Gruvbox Aqua/Cyan
+    property color colPurple: "#d3869b"       // Gruvbox Purple
+    property color colRed: "#fb4934"          // Gruvbox Red (Bright)
+    property color colYellow: "#fabd2f"       // Gruvbox Yellow (Bright)
+    property color colBlue: "#83a598"         // Gruvbox Blue
+    property color colGreen: "#b8bb26"        // Gruvbox Green
     // Font
-    property string fontFamily: "Iosevka Nerd Font Propo"
+
+    property string fontFamily: "Iosevka Nerdfont Propo"
     property int fontSize: 16
 
     // System info properties
@@ -35,12 +35,11 @@ ShellRoot {
     property int cpuTempInt: parseInt(cpuTemp, 10)
     property string upTime: "0"
     
-    property color tempColor: {
-        if (cpuTempInt < 50 ) return "#a6e3a1" // Green
-        else if (cpuTempInt < 70) return "#f9e2af" // Yellow
-        else return "#f38ba8" // Red
-    }
-    
+   property color tempColor: {
+        if (cpuTempInt < 50 ) return "#b8bb26" // Gruvbox Green
+        else if (cpuTempInt < 70) return "#fabd2f" // Gruvbox Yellow
+        else return "#fb4934" // Gruvbox Red
+    } 
     property int notificationCount: 0    
 
     property var lastCpuIdle: 0
