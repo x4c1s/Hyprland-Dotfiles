@@ -1,7 +1,4 @@
 #!/bin/bash
-# Arch Linux Update + Cleanup Script
-# Author: ChatGPT
-# Usage: ./arch-update-cleanup.sh
 
 set -euo pipefail
 
@@ -16,15 +13,15 @@ echo
 
 # --- Step 1: Update pacman database and system ---
 echo -e "${YELLOW}Updating system packages...${RESET}"
-sudo pacman -Syu --noconfirm
+doas pacman -Syu --noconfirm
 
 # --- Step 2: Remove unused dependencies ---
 echo -e "${YELLOW}Removing unused dependencies...${RESET}"
-sudo pacman -Rns $(pacman -Qtdq 2>/dev/null || echo "") || true
+doas pacman -Rns $(pacman -Qtdq 2>/dev/null || echo "") || true
 
 # --- Step 3: Clean pacman cache (keep 3 latest versions) ---
 echo -e "${YELLOW}Cleaning package cache...${RESET}"
-sudo paccache -r -k3
+doas paccache -r -k3
 
 # --- Step 4: Update AUR packages (if yay installed) ---
 if command -v yay >/dev/null 2>&1; then
@@ -41,7 +38,7 @@ fi
 # --- Step 6: Update Snap packages (if installed) ---
 if command -v snap >/dev/null 2>&1; then
     echo -e "${YELLOW}Updating Snap packages...${RESET}"
-    sudo snap refresh
+    doas snap refresh
 fi
 
 # --- Step 7: Optional cleanup: orphaned Flatpak runtimes ---

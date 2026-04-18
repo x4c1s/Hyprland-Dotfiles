@@ -10,7 +10,7 @@ def getWeatherIcon(isDayTime: bool, weatherDescription: str):
         if isDayTime:
             return "☀️"
         else:
-            return "🌙 "
+            return "🌕"
     if weatherDescription in ["PARTLY_CLOUDY", "MOSTLY_CLEAR"]: 
         if isDayTime:
             return  "⛅"
@@ -52,8 +52,8 @@ def getWeatherIcon(isDayTime: bool, weatherDescription: str):
 
 
 url = "https://weather.googleapis.com/v1/currentConditions:lookup"
-lat = "<LATITUDE>"
-long = "<LONGITUDE>"
+lat = "25.4448"
+long = "81.8432"
 
 load_dotenv()
 params = {

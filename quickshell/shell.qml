@@ -20,20 +20,19 @@ ShellRoot {
     // Font
 
     property string fontFamily: "Iosevka Nerdfont Propo"
-    property int fontSize: 16
+    property int fontSize: 15
 
     // System info properties
     property string kernelVersion: "Arch"
-    property string powerProfile: ""
     property int cpuUsage: 0
     property string memUsage: ""
     property string diskUsage: ""
     property int volumeLevel: 0
-    property string activeWindow: "Window"
     property string currentLayout: "Tile"
     property string cpuTemp: "0"
     property int cpuTempInt: parseInt(cpuTemp, 10)
     property string upTime: "0"
+    property string ipAddr: ""
     
    property color tempColor: {
         if (cpuTempInt < 50 ) return "#b8bb26" // Gruvbox Green
@@ -52,6 +51,7 @@ ShellRoot {
     property string netConnection: ""
     
 
+
     Process {
         id: connectionProc
         command: ["sh", "-c", "sed 's/dormant/󰤯 /;s/down/󰤭 /;s/up/󰤨 /' /sys/class/net/wlp8s0/operstate"]
@@ -60,6 +60,8 @@ ShellRoot {
         }
         Component.onCompleted: running = true
     }
+
+
     // System UpTime
     Process {
         id: upTimeProc
@@ -203,16 +205,6 @@ ShellRoot {
         Component.onCompleted: running = true
     }
 
-    // Active window title
-    Process {
-        id: windowProc
-        command: ["sh", "-c", "hyprctl activewindow -j | jq -r '.title // empty'"]
-        stdout: SplitParser {
-            onRead: data => { if (data && data.trim()) activeWindow = data.trim() }
-        }
-        Component.onCompleted: running = true
-    }
-
     // Current layout
     Process {
         id: layoutProc
@@ -252,25 +244,24 @@ ShellRoot {
         interval: 2000; running: true; repeat: true
         onTriggered: {
             cpuProc.running = true; memProc.running = true; diskProc.running = true
-            volProc.running = true; cpuTempProc.running = true; powerProfileProc.running = true
+            volProc.running = true; cpuTempProc.running = true; 
         }
     }
     // Weather Timer
     Timer { 
         interval: 3600000; running: true; repeat: true; onTriggered: { 
-            console.log("Weather fetched at: " + new Date().toString())
             weatherProc.running = true 
         }
     }
 
     Connections {
         target: Hyprland
-        function onRawEvent(event) { windowProc.running = true; layoutProc.running = true }
+        function onRawEvent(event) { layoutProc.running = true }
     }
 
     Timer {
         interval: 200; running: true; repeat: true
-        onTriggered: { windowProc.running = true; layoutProc.running = true }
+        onTriggered: { layoutProc.running = true }
     }
 
     Variants {
@@ -292,7 +283,7 @@ ShellRoot {
 
                     // Arch Icon
                     Rectangle {
-                        Layout.preferredWidth: 24; Layout.preferredHeight: 24; color: "transparent"
+                        Layout.preferredWidth: 18; Layout.preferredHeight: 18; color: "transparent"
                         Image {
                             anchors.fill: parent
                             source: "file:///home/subh/.config/quickshell/icons/arch.png"
@@ -334,14 +325,14 @@ ShellRoot {
 
                     // Layout
                     Text { text: currentLayout; color: root.colFg; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true }
-                    Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.leftMargin: 8; Layout.rightMargin: 8; color: root.colMuted }
-                    Text { text: "󰦖 " + upTime; color: root.colCyan; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true }
 
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.leftMargin: 8; Layout.rightMargin: 8; color: root.colMuted }
 
+                    Text { text: "󰔟 " + upTime; color: root.colBlue; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true }
+            
+            
                     // Window Title
                     Text {
-                        text: activeWindow; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true
                         Layout.fillWidth: true; Layout.leftMargin: 8; elide: Text.ElideRight; maximumLineCount: 1
                     }
                     RowLayout {
@@ -351,7 +342,7 @@ ShellRoot {
                         Text {
                             text: weatherIcon
                             color: root.colYellow 
-                            font.pixelSize: 18
+                            font.pixelSize: root.fontSize + 3
                             font.family: root.fontFamily
                             font.bold: true
                             }
@@ -385,7 +376,7 @@ ShellRoot {
 
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
-                    Text { text: " " + cpuTemp; color: tempColor; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
+                    Text { text: " " + cpuTemp; color: tempColor; font.pixelSize: root.fontSize ; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
                     Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; Layout.rightMargin: 8; color: root.colMuted }
 
                     Text { text: " " + cpuUsage + "%"; color: root.colPurple; font.pixelSize: root.fontSize; font.family: root.fontFamily; font.bold: true; Layout.rightMargin: 8 }
@@ -412,7 +403,7 @@ ShellRoot {
                     Text {
                         id: netSpeed
                         color: root.colRed
-                        font.pixelSize: 15
+                        font.pixelSize: 14
                         font.family: root.fontFamily
                         font.bold: true
                         Layout.rightMargin: 8
@@ -479,7 +470,7 @@ ShellRoot {
     				}
 				}
 
-                Item { width: 8 }
+                 Item { width: 6 }
                 }
             }
         }

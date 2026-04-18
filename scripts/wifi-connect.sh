@@ -10,7 +10,7 @@ awk -F '  +' '
     }
 ' | sort -u)  
 
-CHOICE=$(echo "$NETWORKS" | rofi -dmenu -i -p "WiFi")
+CHOICE=$(echo "$NETWORKS" | rofi -dmenu -i -p "WiFi:")
 [[ -z "$CHOICE" ]] && exit 0
 
 SSID=$(echo "$CHOICE" | sed 's/ (.*//')

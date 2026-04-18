@@ -1,19 +1,26 @@
 #!/bin/bash
 
+# Default to wlp8s0 if no argument is provided
 IFACE=${1:-wlp8s0}
+PATH_RX="/sys/class/net/$IFACE/statistics/rx_bytes"
+PATH_TX="/sys/class/net/$IFACE/statistics/tx_bytes"
 
 while true; do
-    OLD=$(awk -v i="$IFACE:" '$1==i {print $2, $10}' /proc/net/dev)
+    # Read current byte counts
+    OLD_RX=$(cat "$PATH_RX")
+    OLD_TX=$(cat "$PATH_TX")
+    
     sleep 1
-    NEW=$(awk -v i="$IFACE:" '$1==i {print $2, $10}' /proc/net/dev)
+    
+    # Read new byte counts
+    NEW_RX=$(cat "$PATH_RX")
+    NEW_TX=$(cat "$PATH_TX")
 
-    OLD_RX=$(echo $OLD | awk '{print $1}')
-    OLD_TX=$(echo $OLD | awk '{print $2}')
-    NEW_RX=$(echo $NEW | awk '{print $1}')
-    NEW_TX=$(echo $NEW | awk '{print $2}')
-
+    # Calculate difference and convert to KiB
+    # (Bytes / 1024 = KiB)
     RX=$(( (NEW_RX - OLD_RX) / 1024 ))
     TX=$(( (NEW_TX - OLD_TX) / 1024 ))
 
-    echo "⬇️ ${RX} KB/s  ⬆️ ${TX} KB/s"
+    # Output with icons
+    echo " ${RX} KiB/s   ${TX} KiB/s"
 done

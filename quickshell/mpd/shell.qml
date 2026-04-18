@@ -13,7 +13,7 @@ ShellRoot {
     property color colBlue: "#83a598"         // Gruvbox Blue
     property color colGreen: "#b8bb26"        // Gruvbox Green
     property string fontFamily: "Iosevka NerdFont Propo"
-    property int fontSize: 16
+    property int fontSize: 15
     property string mpd_title:    ""
     property string mpd_artist:   ""
     property string mpd_elapsed:  "0:00"
@@ -47,7 +47,7 @@ ShellRoot {
         property string title: ""
         property string artist: ""
         property string art: ""
-        command : ["sh", "-c", "notify-send -i '/tmp/mpdrop_art.png' -a 'MPD' 'Now Playing' '" + mpd_title.replace(/'/g, "") + (mpd_artist !== "" ? "\n" + mpd_artist.replace(/'/g, "") : "") + "'"
+        command : ["sh", "-c", "notify-send -u 'normal' -i '/tmp/mpdrop_art.png' -a 'MPD' 'Now Playing' '" + mpd_title.replace(/'/g, "") + (mpd_artist !== "" ? "\n" + mpd_artist.replace(/'/g, "") : "") + "'"
     ]
         running: false
     }
@@ -557,7 +557,7 @@ ShellRoot {
 
                     Behavior on color { ColorAnimation { duration: 200 } }
                 }
-                Item { width: 8 }
+                // Item { width: 8 }
             }
         }
     }

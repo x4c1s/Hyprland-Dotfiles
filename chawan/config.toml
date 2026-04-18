@@ -1,0 +1,21 @@
+[buffer]
+images = true
+scripting = false
+cookie = false
+referer-from = false
+history = false
+
+[search]
+ignore-case = "auto"
+
+
+[external]
+editor = "/usr/sbin/vim %s"
+copy-cmd = "/usr/sbin/wl-copy"
+paste-cmd = "/usr/sbin/wl-paste"
+
+
+[display]
+image-mode = "auto"
+format-mode = "auto"
+

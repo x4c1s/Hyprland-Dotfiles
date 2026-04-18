@@ -1,5 +1,12 @@
 #!/bin/bash
 
-song_info=$(mpc status --format "%title% - %artist%" | head -n1)
+mpd_info="$(mpc current --format "🎵 %artist% - %title%" 2>/dev/null)"
+if [ $? -eq 0 ]; then
+    echo "$mpd_info"
+fi
 
-echo "🎵 $song_info" 
+player_info="$(playerctl metadata --format '▶️  {{artist}} - {{title}}' 2>/dev/null)"
+if [ $? -eq 0 ]; then
+   echo $player_info
+fi
+ 

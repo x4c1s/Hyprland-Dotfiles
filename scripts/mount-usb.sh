@@ -63,13 +63,8 @@ case "$chosen" in
         chosen="${chosen%% *}"
         chosen="${chosen:1}"
 
-        num="00"
-        while true; do
-            [ -b "/dev/mapper/usb$num" ] || break
-            num="$(printf "%02d" "$((10#$num + 1))")"
-        done
-
-        MAPPER="$usb$num"
+        
+        MAPPER="usb-$RANDOM"
 
         ${TERMINAL:-foot} -a floatpattern -w 60x3 sh -c "pass=\$(systemd-ask-password 'Enter Passphrase:'); echo \$pass | sudo cryptsetup open '$chosen' '$MAPPER'" 
 
