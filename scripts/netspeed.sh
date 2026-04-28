@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Default to wlp8s0 if no argument is provided
-IFACE=${1:-wlp8s0}
+IFACE=${1:-wlan0}
 PATH_RX="/sys/class/net/$IFACE/statistics/rx_bytes"
 PATH_TX="/sys/class/net/$IFACE/statistics/tx_bytes"
 

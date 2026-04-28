@@ -54,7 +54,7 @@ ShellRoot {
 
     Process {
         id: connectionProc
-        command: ["sh", "-c", "sed 's/dormant/󰤯 /;s/down/󰤭 /;s/up/󰤨 /' /sys/class/net/wlp8s0/operstate"]
+        command: ["sh", "-c", "sed 's/dormant/󰤯 /;s/down/󰤭 /;s/up/󰤨 /' /sys/class/net/wlan0/operstate"]
         stdout: SplitParser {
             onRead: data => { if (data) netConnection = data.trim() }
         }
@@ -410,7 +410,7 @@ ShellRoot {
 
                             Process {
                                 id: netProc
-                                command: ["bash", "/opt/scripts/netspeed.sh", "wlp8s0"]
+                                command: ["bash", "/opt/scripts/netspeed.sh", "wlan0"]
                                 running: root.netConnection == "󰤨"
                                 stdout: SplitParser {
                                     onRead: data => netSpeed.text = data.trim()
